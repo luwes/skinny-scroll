@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cd $(dirname $0)
+
 java -jar /usr/local/bin/compiler/compiler.jar \
 	--js=src/main.js \
 	--js=src/mousemode.js \
