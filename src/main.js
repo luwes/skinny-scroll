@@ -5,42 +5,39 @@
  * Version: 1.0 - (2012/07/30)
  */
 
-(function(C) {
+(function(global) {
 
-	C.SkinnyScroll = function(el, config) {
-		var C = SkinnyScroll;
-		var Utils = C.Utils;
-		var that = this;
+	var C = function(el, config) {
+
 		var mode = null;
 
-		that.hasTouch = 'ontouchstart' in window;
-		that.config = {
+		this.hasTouch = "ontouchstart" in window;
+		this.config = {
 			color: "#fff",
 			radius: 7,
 			width: 7
 		};
 
-		for (var i in config) that.config[i] = config[i];
+		for (var i in config) this.config[i] = config[i];
 
 		var wrap = typeof el === "object" ? el : document.getElementById(el);
-		Utils.css(wrap, {
+		C.Utils.css(wrap, {
 			overflow: "hidden"
 		});
 
 		var view = wrap.children[0];
-		Utils.css(view, {
+		C.Utils.css(view, {
 			position: "absolute",
 			left: 0,
 			top: 0,
 			right: 0
 		});
 
-		if (that.hasTouch) {
-
+		if (this.hasTouch) {
 			mode = new C.TouchMode(this, wrap, view);
 		} else {
 
-			Utils.css(view, {
+			C.Utils.css(view, {
 				overflow: "hidden",
 				bottom: 0
 			});
@@ -49,20 +46,22 @@
 		}
 
 		mode.redraw();
-		Utils.on(window, 'resize', mode.redraw);
+		C.Utils.on(window, 'resize', mode.redraw);
 
-		that.scrollTop = function(y) {
+		this.scrollTop = function(y) {
 			return mode.scrollTop(y);
 		};
 
-		that.redraw = function() {
-			mode.redraw();
+		this.redraw = function() {
+			return mode.redraw();
 		};
 
-		that.destroy = function() {
-			Utils.off(window, 'resize', mode.redraw);
+		this.destroy = function() {
+			C.Utils.off(window, 'resize', mode.redraw);
 			mode.destroy();
 		};
 	};
+
+	global.SkinnyScroll = C;
 
 })(window);

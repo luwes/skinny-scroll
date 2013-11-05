@@ -1,8 +1,7 @@
 (function(C) {
 
 	C.Scrollbar = function(main, el, hasMouse) {
-		var Utils = C.Utils;
-		var that = this;
+		var _this = this;
 
 		var color = main.config.color;
 		var radius = main.config.radius;
@@ -10,32 +9,32 @@
 
 		el = typeof el === "object" ? el : document.getElementById(el);
 
-		that.rail = Utils.add('div', el, {
+		this.rail = C.Utils.add('div', el, {
 			position: "absolute",
-			right: 2,
+			right: 0,
 			top: 2,
 			bottom: 2,
-			width: width,
+			width: width + 2,
 			zIndex: 90
 		});
-		that.rail.className = "skinnyscrollbar";
+		this.rail.className = "skinnyscrollbar";
 
-		that.back = Utils.add('div', that.rail, {
+		this.back = C.Utils.add('div', this.rail, {
 			backgroundColor: color,
-			filter: "alpha(opacity=15)",
-			opacity: 0.15,
+			filter: "alpha(opacity=20)",
+			opacity: 0.20,
 			borderRadius: radius,
 			position: "absolute",
 			left: 0,
 			top: 0,
-			right: 0,
-			bottom: 0
+			bottom: 0,
+			width: width
 		});
 
-		that.hand = Utils.add('div', that.rail, {
+		this.hand = C.Utils.add('div', this.rail, {
 			backgroundColor: color,
-			filter: "alpha(opacity=25)",
-			opacity: 0.25,
+			filter: "alpha(opacity=40)",
+			opacity: 0.40,
 			borderRadius: radius,
 			position: "absolute",
 			left: 0,
@@ -44,11 +43,11 @@
 			height: 7
 		});
 
-		that.diff = Utils.getOffset(that.hand).top;
+		this.diff = C.Utils.getOffset(this.hand).top;
 
 		if (hasMouse) {
-			Utils.on(that.hand, 'mousedown', start);
-			Utils.on(that.rail, 'mousedown', drag);
+			C.Utils.on(this.hand, 'mousedown', start);
+			C.Utils.on(this.rail, 'mousedown', drag);
 		}
 
 		function start(e) {
@@ -57,27 +56,27 @@
 
 			if (e.preventDefault) e.preventDefault();
 
-			Utils.on(document, 'mousemove', drag);
-			Utils.on(document, 'mouseup', end);
-			Utils.on(that.hand, 'mouseup', end);
+			C.Utils.on(document, 'mousemove', drag);
+			C.Utils.on(document, 'mouseup', end);
+			C.Utils.on(_this.hand, 'mouseup', end);
 
-			that.diff = e.pageY - that.hand.offsetTop;
+			_this.diff = e.pageY - _this.hand.offsetTop;
 		}
 
 		function drag(e) {
 			e = e || window.event;
 			fixPage(e);
 
-			main.scrollTop((e.pageY - that.diff) * that.ratio);
+			main.scrollTop(-(e.pageY - _this.diff) * _this.ratio);
 			return false;
 		}
 
 		function end(e) {
 			e = e || window.event;
 
-			Utils.off(document, 'mousemove', drag);
-			Utils.off(document, 'mouseup', end);
-			Utils.off(that.hand, 'mouseup', end);
+			C.Utils.off(document, 'mousemove', drag);
+			C.Utils.off(document, 'mouseup', end);
+			C.Utils.off(_this.hand, 'mouseup', end);
 		}
 
 		function fixPage(event) {
@@ -94,13 +93,15 @@
 
 		redraw: function(scrollHeight, height) {
 
-			var that = this;
-			that.rail.style.display = height >= scrollHeight ? "none" : "block";
+			var visible = height < scrollHeight;
+			this.rail.style.display = visible ? "block" : "none";
 
-			that.scrollHeight = scrollHeight;
-			that.height = height;
-			that.handHeight = Math.max(height / scrollHeight * that.rail.offsetHeight, 25);
-			that.ratio = (scrollHeight - height) / (that.rail.offsetHeight - that.handHeight);
+			this.scrollHeight = scrollHeight;
+			this.height = height;
+			this.handHeight = Math.max(height / scrollHeight * this.rail.offsetHeight, 25);
+			this.ratio = (scrollHeight - height) / (this.rail.offsetHeight - this.handHeight);
+			
+			return visible;
 		},
 
 		destroy: function() {

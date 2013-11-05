@@ -1,64 +1,66 @@
 (function(C) {
 
 	C.TouchMode = function(main, wrap, view) {
-		var that = this;
+		var _this = this;
 		var sbar = new C.Scrollbar(main, wrap);
 
 		var hasMatrix = 'WebKitCSSMatrix' in window;
 		var has3D = hasMatrix && 'm11' in new WebKitCSSMatrix();
 		var interval;
 
-		that.wrap = wrap;
-		that.view = view;
-		that.x = 0;
-		that.y = 0;
+		this.wrap = wrap;
+		this.view = view;
+		this.x = 0;
+		this.y = 0;
 
 		C.Utils.on(view, 'touchstart', this);
 
 		C.Utils.on(view, 'webkitTransitionEnd', transitionEnd);
 		view.style.WebkitTransition = "-webkit-transform 1s cubic-bezier(0,0,0.2,1)";
 
-		that.scrollTop = function(y) {
+		this.scrollTop = function(y) {
 			if (y === undefined) {
 				this.clampY();
-				return that.y;
+				return this.y;
 			} else {
-				that.setY(y);
+				this.setY(y);
 				sbar.setY(-y);
 			}
 		};
 
-		that.setY = function(y) {
+		this.setY = function(y) {
+			this.y = y;
 			view.style.WebkitTransform = has3D ? "translate3d(0, " + y + "px, 0)" : "translate(0, " + y + "px)";
 		};
 
-		that.getY = function() {
+		this.getY = function() {
 			if (hasMatrix) {
-				var transform = window.getComputedStyle(that.view).webkitTransform;
+				var transform = window.getComputedStyle(this.view).webkitTransform;
 				if (!!transform && transform !== 'none') {
 					var matrix = new WebKitCSSMatrix(transform);
 					return matrix.f;
 				}
 			}
-			return that.y;
+			return this.y;
 		};
 
-		that.redraw = function() {
-			sbar.redraw(view.offsetHeight, wrap.offsetHeight);
-			that.scrollTop(that.scrollTop());
+		this.redraw = function() {
+			var visible = sbar.redraw(view.offsetHeight, wrap.offsetHeight);
+			_this.scrollTop(_this.scrollTop());
+			return visible;
 		};
 
-		that.destroy = function() {
+		this.destroy = function() {
 			C.Utils.off(view, 'touchstart', this);
 			C.Utils.off(view, 'webkitTransitionEnd', transitionEnd);
 			view.style.WebkitTransition = "";
 			sbar.destroy();
 		};
 
-		that.animateScrollbar = function() {
+		this.animateScrollbar = function() {
 			clearInterval(interval);
 			interval = setInterval(function() {
-				sbar.setY(-that.getY());
+				sbar.setY(-_this.getY());
 			}, 1000 / 30);
 		};
 

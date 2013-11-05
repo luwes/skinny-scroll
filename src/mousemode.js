@@ -1,7 +1,7 @@
 (function(C) {
 
 	C.MouseMode = function(main, wrap, view) {
-		var that = this;
+		var _this = this;
 		var sbar = new C.Scrollbar(main, wrap, true);
 
 		var mousewheel = new C.Mousewheel(wrap);
@@ -9,25 +9,26 @@
 			if (e.preventDefault) e.preventDefault();
 			else e.returnValue = false;
 
-			that.scrollTop(that.scrollTop() + delta * 20);
+			_this.scrollTop(_this.scrollTop() - delta * 20);
 		}
 		mousewheel.on(scrollOnMousewheel);
 
-		that.scrollTop = function(y) {
+		this.scrollTop = function(y) {
 			if (y === undefined) {
-				return view.scrollTop;
+				return -view.scrollTop;
 			} else {
-				view.scrollTop = y;
+				view.scrollTop = -y;
 				sbar.setY(view.scrollTop);
 			}
 		};
 
-		that.redraw = function() {
-			sbar.redraw(view.scrollHeight, view.offsetHeight);
-			that.scrollTop(that.scrollTop());
+		this.redraw = function() {
+			var visible = sbar.redraw(view.scrollHeight, view.offsetHeight);
+			_this.scrollTop(_this.scrollTop());
+			return visible;
 		};
 
-		that.destroy = function() {
+		this.destroy = function() {
 			mousewheel.off(scrollOnMousewheel);
 			sbar.destroy();
 		};
