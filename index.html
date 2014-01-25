@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
@@ -15,6 +15,13 @@
 			font-size: 12px;
 			font-family: helvetica;
 		    -webkit-text-size-adjust: none;
+		}
+
+		#main {
+			display: block;
+			position: relative;
+			width: 500px;
+			height: 400px;
 		}
 
 		#header {
@@ -75,7 +82,7 @@
 	</style>
 </head>
 <body>
-
+<div id="main">
 	<div id="header"><a href="">Skinny Scroll</a></div>
 	<div id="wrapper">
 		<div id="scroller">
@@ -128,7 +135,8 @@
 	<script src="skinny-scroll.js"></script>
 	<script>
 		var scroll = new SkinnyScroll('wrapper');
-		scroll.scrollTop(100);
+		scroll.scrollTop(-100);
 	</script>
+</div>
 </body>
 </html>

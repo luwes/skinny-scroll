@@ -1,1 +1,229 @@
-!function(t){var i=function(t,e){var o=null;this.hasTouch="ontouchstart"in window,this.config={color:"#fff",radius:7,width:7};for(var s in e)this.config[s]=e[s];var n="object"==typeof t?t:document.getElementById(t);i.Utils.css(n,{overflow:"hidden"});var l=n.children[0];i.Utils.css(l,{position:"absolute",left:0,top:0,right:0}),this.hasTouch?o=new i.TouchMode(this,n,l):(i.Utils.css(l,{overflow:"hidden",bottom:0}),o=new i.MouseMode(this,n,l)),o.redraw(),i.Utils.on(window,"resize",o.redraw),this.scrollTop=function(t){return o.scrollTop(t)},this.redraw=function(){return o.redraw()},this.destroy=function(){i.Utils.off(window,"resize",o.redraw),o.destroy()}};t.SkinnyScroll=i}(window),function(t){t.MouseMode=function(i,e,o){function s(t,i){t.preventDefault?t.preventDefault():t.returnValue=!1,n.scrollTop(n.scrollTop()-20*i)}var n=this,l=new t.Scrollbar(i,e,!0),h=new t.Mousewheel(e);h.on(s),this.scrollTop=function(t){return void 0===t?-o.scrollTop:(o.scrollTop=-t,l.setY(o.scrollTop),void 0)},this.redraw=function(){var t=l.redraw(o.scrollHeight,o.offsetHeight);return n.scrollTop(n.scrollTop()),t},this.destroy=function(){h.off(s),l.destroy()}}}(SkinnyScroll),function(t){t.TouchMode=function(i,e,o){function s(){clearInterval(n),o.style.WebkitTransitionDuration="0s"}var n,l=this,h=new t.Scrollbar(i,e),r="WebKitCSSMatrix"in window,a=r&&"m11"in new WebKitCSSMatrix;this.wrap=e,this.view=o,this.x=0,this.y=0,t.Utils.on(o,"touchstart",this),t.Utils.on(o,"webkitTransitionEnd",s),o.style.WebkitTransition="-webkit-transform 1s cubic-bezier(0,0,0.2,1)",this.scrollTop=function(t){return void 0===t?(this.clampY(),this.y):(this.setY(t),h.setY(-t),void 0)},this.setY=function(t){this.y=t,o.style.WebkitTransform=a?"translate3d(0, "+t+"px, 0)":"translate(0, "+t+"px)"},this.getY=function(){if(r){var t=window.getComputedStyle(this.view).webkitTransform;if(t&&"none"!==t){var i=new WebKitCSSMatrix(t);return i.f}}return this.y},this.redraw=function(){var t=h.redraw(o.offsetHeight,e.offsetHeight);return l.scrollTop(l.scrollTop()),t},this.destroy=function(){t.Utils.off(o,"touchstart",this),t.Utils.off(o,"webkitTransitionEnd",s),o.style.WebkitTransition="",h.destroy()},this.animateScrollbar=function(){clearInterval(n),n=setInterval(function(){h.setY(-l.getY())},1e3/30)}},t.TouchMode.prototype={handleEvent:function(t){this[t.type](t)},touchstart:function(i){this.wrap.offsetHeight<this.view.offsetHeight&&(this.moved=!1,this.startX=i.touches[0].pageX-this.x,this.startY=i.touches[0].pageY-this.y,this.view.style.WebkitTransitionDuration="0s",t.Utils.on(this.view,"touchmove",this),t.Utils.on(this.view,"touchend",this))},touchmove:function(t){this.lastX=this.x,this.lastY=this.y,this.x=t.touches[0].pageX-this.startX,this.y=t.touches[0].pageY-this.startY,1===t.touches.length&&Math.abs(this.y-this.lastY)>Math.abs(this.x-this.lastX)&&(t.preventDefault(),this.moved=!0,this.lastMoveTime=(new Date).getTime(),this.scrollTop(this.y))},touchend:function(i){if(t.Utils.off(this.view,"touchmove",this),t.Utils.off(this.view,"touchend",this),this.moved){i.preventDefault();var e=this.y-this.lastY,o=(new Date).getTime()-this.lastMoveTime+1;this.y=this.y+200*e/o,this.view.style.WebkitTransitionDuration=this.clampY()?"0.5s":"1s",this.setY(this.y),this.animateScrollbar()}},clampY:function(){return this.y>=0?(this.y=0,!0):this.y<this.wrap.offsetHeight-this.view.offsetHeight?(this.y=this.wrap.offsetHeight-this.view.offsetHeight,!0):void 0}}}(SkinnyScroll),function(t){t.Mousewheel=function(t){var i=this;i.el="object"==typeof t?t:document.getElementById(t),i.calls=[],i.t=function(t){i.to(t)}},t.Mousewheel.prototype={on:function(i){0===this.calls.length&&t.Utils.on(this.el,"DOMMouseScroll mousewheel",this.t),this.calls.push(i)},off:function(i){if(i)for(var e=0;e<this.calls.length;e++)this.calls[e]===i&&(this.calls.splice(e,1),e--);else this.calls=[];0===this.calls.length&&t.Utils.off(this.el,"DOMMouseScroll mousewheel",this.t)},to:function(t){t=t||window.event;var i=0;t.wheelDelta&&(i=-t.wheelDelta/120),t.detail&&(i=t.detail/3);var e=[].slice.call(arguments,1);e.unshift(t,i);for(var o=0;o<this.calls.length;o++)"function"==typeof this.calls[o]&&this.calls[o].apply(this,e)}}}(SkinnyScroll),function(t){t.Scrollbar=function(i,e,o){function s(i){i=i||window.event,h(i),i.preventDefault&&i.preventDefault(),t.Utils.on(document,"mousemove",n),t.Utils.on(document,"mouseup",l),t.Utils.on(r.hand,"mouseup",l),r.diff=i.pageY-r.hand.offsetTop}function n(t){return t=t||window.event,h(t),i.scrollTop(-(t.pageY-r.diff)*r.ratio),!1}function l(i){i=i||window.event,t.Utils.off(document,"mousemove",n),t.Utils.off(document,"mouseup",l),t.Utils.off(r.hand,"mouseup",l)}function h(t){if(void 0===t.pageX&&void 0!==t.clientX){var i=document.documentElement,e=document.body;t.pageX=t.clientX+(i&&i.scrollLeft||e&&e.scrollLeft||0)-(i&&i.clientLeft||e&&e.clientLeft||0),t.pageY=t.clientY+(i&&i.scrollTop||e&&e.scrollTop||0)-(i&&i.clientTop||e&&e.clientTop||0)}}var r=this,a=i.config.color,c=i.config.radius,f=i.config.width;e="object"==typeof e?e:document.getElementById(e),this.rail=t.Utils.add("div",e,{position:"absolute",right:0,top:2,bottom:2,width:f+2,zIndex:90}),this.rail.className="skinnyscrollbar",this.back=t.Utils.add("div",this.rail,{backgroundColor:a,filter:"alpha(opacity=20)",opacity:.2,borderRadius:c,position:"absolute",left:0,top:0,bottom:0,width:f}),this.hand=t.Utils.add("div",this.rail,{backgroundColor:a,filter:"alpha(opacity=40)",opacity:.4,borderRadius:c,position:"absolute",left:0,top:0,width:f,height:7}),this.diff=t.Utils.getOffset(this.hand).top,o&&(t.Utils.on(this.hand,"mousedown",s),t.Utils.on(this.rail,"mousedown",n))},t.Scrollbar.prototype={redraw:function(t,i){var e=t>i;return this.rail.style.display=e?"block":"none",this.scrollHeight=t,this.height=i,this.handHeight=Math.max(i/t*this.rail.offsetHeight,25),this.ratio=(t-i)/(this.rail.offsetHeight-this.handHeight),e},destroy:function(){var t=this.rail.parentNode;t&&t.removeChild(this.rail)},setY:function(t){var i=t/this.ratio;isNaN(i)&&(i=0);var e=i+this.handHeight-this.rail.offsetHeight,o=this.hand.style;0>t?(o.height=Math.max(this.handHeight+i,25)+"px",o.top="0px"):e>0?(o.height=Math.max(this.handHeight-e,25)+"px",o.bottom="0px",o.top="auto"):(o.height=this.handHeight+"px",o.top=i+"px")}}}(SkinnyScroll),function(t){t.Utils=function(){},t.Utils.add=function(i,e,o){var s=document.createElement(i);return e.appendChild(s),t.Utils.css(s,o),s},t.Utils.css=function(t,i){if(t)for(var e in i)if("undefined"!=typeof i[e]){if("number"==typeof i[e]&&"zIndex"!=e&&"opacity"!=e){if(isNaN(i[e]))continue;i[e]=Math.ceil(i[e])+"px"}try{t.style[e]=i[e]}catch(o){}}},t.Utils.getOffset=function(t){for(var i=0,e=0;t&&!isNaN(t.offsetLeft)&&!isNaN(t.offsetTop);)i+=t.offsetLeft-t.scrollLeft,e+=t.offsetTop-t.scrollTop,t=t.offsetParent;return{top:e,left:i}},t.Utils.on=function(t,i,e){if(null!==t&&void 0!==t)for(var o=i.split(" "),s=0;s<o.length;s++)t.addEventListener?t.addEventListener(o[s],e,!1):t.attachEvent?t.attachEvent("on"+o[s],e):t["on"+o[s]]=e},t.Utils.off=function(t,i,e){if(null!==t&&void 0!==t)for(var o=i.split(" "),s=0;s<o.length;s++)t.removeEventListener?t.removeEventListener(o[s],e,!1):t.detachEvent?t.detachEvent("on"+o[s],e):t["on"+o[s]]=null}}(SkinnyScroll);
+!function(window, document) {
+    var _ = {
+        append: function(parent, css, tag) {
+            var el = document.createElement(tag || "div");
+            return _.css(el, css), parent.appendChild(el);
+        },
+        bind: function(fn, context) {
+            return function() {
+                fn.apply(context, [].slice.call(arguments));
+            };
+        },
+        on: function(el, type, fn) {
+            for (var arr = type.split(" "), i = 0; i < arr.length; i++) el.attachEvent ? el.attachEvent("on" + arr[i], fn) : el.addEventListener(arr[i], fn, !1);
+        },
+        off: function(el, type, fn) {
+            for (var arr = type.split(" "), i = 0; i < arr.length; i++) el.detachEvent ? el.detachEvent("on" + arr[i], fn) : el.removeEventListener(arr[i], fn, !1);
+        },
+        extend: function(src, dest) {
+            for (var key in dest) src[key] = dest[key];
+            return src;
+        },
+        css: function(el, props) {
+            for (var key in props) {
+                var val = props[key];
+                if ("undefined" != typeof val) {
+                    if ("number" == typeof val && "zIndex" != key && "opacity" != key) {
+                        if (isNaN(val)) continue;
+                        val = Math.ceil(val) + "px";
+                    }
+                    try {
+                        el.style[key] = val;
+                    } catch (e) {}
+                }
+            }
+        },
+        getPointer: function(e) {
+            var x = e.pageX, y = e.pageY;
+            if (e.touches && (x = e.touches[0].pageX, y = e.touches[0].pageY), null == x) {
+                var doc = document.documentElement, body = document.body;
+                x = e.clientX + (doc.scrollLeft || body.scrollLeft || 0) - (doc.clientLeft || body.clientLeft || 0), 
+                y = e.clientY + (doc.scrollTop || body.scrollTop || 0) - (doc.clientTop || body.clientTop || 0);
+            }
+            return {
+                x: x,
+                y: y
+            };
+        },
+        getOffset: function(el) {
+            var docElem = document.documentElement, box = el.getBoundingClientRect(el);
+            return {
+                top: box.top + (window.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
+                left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
+            };
+        }
+    };
+    window.SkinnyScroll = function(el, options) {
+        var mode = null;
+        this.hasTouch = "ontouchstart" in window;
+        var defaults = {
+            color: "#fff",
+            radius: 6,
+            width: 6
+        };
+        this.config = _.extend(defaults, options);
+        var wrap = document.getElementById(el) || el;
+        _.css(wrap, {
+            overflow: "hidden"
+        });
+        var view = wrap.children[0];
+        _.css(view, {
+            position: "absolute",
+            left: 0,
+            top: 0,
+            right: 0
+        }), this.hasTouch ? mode = new TouchMode(this, wrap, view) : (_.css(view, {
+            overflow: "hidden",
+            bottom: 0
+        }), mode = new MouseMode(this, wrap, view)), mode.redraw(), _.on(window, "resize", mode.redraw), 
+        this.scrollTop = function(y) {
+            return mode.scrollTop(y);
+        }, this.redraw = function() {
+            return mode.redraw();
+        }, this.destroy = function() {
+            _.off(window, "resize", mode.redraw), mode.destroy();
+        };
+    };
+    var MouseMode = function(main, wrap, view) {
+        function scrollOnMousewheel(e) {
+            if (e = e || window.event, _this.enabled) {
+                e.preventDefault ? e.preventDefault() : e.returnValue = !1;
+                var delta = 0;
+                e.wheelDelta && (delta = -e.wheelDelta / 120), e.detail && (delta = e.detail / 3), 
+                _this.scrollTop(_this.scrollTop() - 20 * delta);
+            }
+        }
+        var _this = this, sbar = new Scrollbar(main, wrap, !0);
+        _.on(wrap, "DOMMouseScroll mousewheel", scrollOnMousewheel), this.scrollTop = function(y) {
+            return void 0 === y ? -view.scrollTop : (view.scrollTop = -y, void sbar.setY(view.scrollTop));
+        }, this.redraw = function() {
+            return this.enabled = sbar.redraw(view.scrollHeight, view.offsetHeight), _this.scrollTop(_this.scrollTop()), 
+            this.enabled;
+        }, this.destroy = function() {
+            _.off(wrap, "DOMMouseScroll mousewheel", scrollOnMousewheel), sbar.destroy();
+        };
+    }, Scrollbar = function(main, el, hasMouse) {
+        function start(e) {
+            e = e || window.event, e.preventDefault && e.preventDefault(), _.on(document, "mousemove", drag), 
+            _.on(document, "mouseup", end), _.on(_this.hand, "mouseup", end), _this.diff = _.getPointer(e).y - _this.hand.offsetTop;
+        }
+        function drag(e) {
+            return e = e || window.event, main.scrollTop(-(_.getPointer(e).y - _this.diff) * _this.ratio), 
+            !1;
+        }
+        function end(e) {
+            e = e || window.event, _.off(document, "mousemove", drag), _.off(document, "mouseup", end), 
+            _.off(_this.hand, "mouseup", end);
+        }
+        var _this = this, color = main.config.color, radius = main.config.radius, width = main.config.width;
+        el = document.getElementById(el) || el, this.rail = _.append(el, {
+            position: "absolute",
+            right: 0,
+            top: 2,
+            bottom: 2,
+            width: width + 2,
+            zIndex: 90
+        }), this.rail.className = "skinnyscrollbar", this.back = _.append(this.rail, {
+            backgroundColor: color,
+            filter: "alpha(opacity=20)",
+            opacity: .2,
+            borderRadius: radius,
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: width
+        }), this.hand = _.append(this.rail, {
+            backgroundColor: color,
+            filter: "alpha(opacity=40)",
+            opacity: .4,
+            borderRadius: radius,
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: width,
+            height: 7
+        }), this.diff = _.getOffset(this.hand).top, hasMouse && (_.on(this.hand, "mousedown", start), 
+        _.on(this.rail, "mousedown", drag));
+    };
+    Scrollbar.prototype = {
+        redraw: function(scrollHeight, height) {
+            var visible = scrollHeight > height;
+            return this.rail.style.display = visible ? "block" : "none", this.scrollHeight = scrollHeight, 
+            this.height = height, this.handHeight = Math.max(height / scrollHeight * this.rail.offsetHeight, 25), 
+            this.ratio = (scrollHeight - height) / (this.rail.offsetHeight - this.handHeight), 
+            visible;
+        },
+        destroy: function() {
+            var pn = this.rail.parentNode;
+            pn && pn.removeChild(this.rail);
+        },
+        setY: function(y) {
+            var offset = y / this.ratio;
+            isNaN(offset) && (offset = 0);
+            var diff = offset + this.handHeight - this.rail.offsetHeight, handStyle = this.hand.style;
+            0 > y ? (handStyle.height = Math.max(this.handHeight + offset, 25) + "px", handStyle.top = "0px") : diff > 0 ? (handStyle.height = Math.max(this.handHeight - diff, 25) + "px", 
+            handStyle.bottom = "0px", handStyle.top = "auto") : (handStyle.height = this.handHeight + "px", 
+            handStyle.top = offset + "px");
+        }
+    };
+    var TouchMode = function(main, wrap, view) {
+        function transitionEnd() {
+            clearInterval(interval), view.style.WebkitTransitionDuration = "0s";
+        }
+        var interval, _this = this, sbar = new Scrollbar(main, wrap), hasMatrix = "WebKitCSSMatrix" in window, has3D = hasMatrix && "m11" in new WebKitCSSMatrix();
+        this.wrap = wrap, this.view = view, this.x = 0, this.y = 0, _.on(view, "touchstart", this), 
+        _.on(view, "webkitTransitionEnd", transitionEnd), view.style.WebkitTransition = "-webkit-transform 1s cubic-bezier(0,0,0.2,1)", 
+        this.scrollTop = function(y) {
+            return void 0 === y ? (this.clampY(), this.y) : (this.setY(y), void sbar.setY(-y));
+        }, this.setY = function(y) {
+            this.y = y, view.style.WebkitTransform = has3D ? "translate3d(0, " + y + "px, 0)" : "translate(0, " + y + "px)";
+        }, this.getY = function() {
+            if (hasMatrix) {
+                var transform = window.getComputedStyle(this.view).webkitTransform;
+                if (transform && "none" !== transform) {
+                    var matrix = new WebKitCSSMatrix(transform);
+                    return matrix.f;
+                }
+            }
+            return this.y;
+        }, this.redraw = function() {
+            var visible = sbar.redraw(view.offsetHeight, wrap.offsetHeight);
+            return _this.scrollTop(_this.scrollTop()), visible;
+        }, this.destroy = function() {
+            _.off(view, "touchstart", this), _.off(view, "webkitTransitionEnd", transitionEnd), 
+            view.style.WebkitTransition = "", sbar.destroy();
+        }, this.animateScrollbar = function() {
+            clearInterval(interval), interval = setInterval(function() {
+                sbar.setY(-_this.getY());
+            }, 1e3 / 30);
+        };
+    };
+    TouchMode.prototype = {
+        handleEvent: function(e) {
+            this[e.type](e);
+        },
+        touchstart: function(e) {
+            this.wrap.offsetHeight < this.view.offsetHeight && (this.moved = !1, this.startX = e.touches[0].pageX - this.x, 
+            this.startY = e.touches[0].pageY - this.y, this.view.style.WebkitTransitionDuration = "0s", 
+            _.on(this.view, "touchmove", this), _.on(this.view, "touchend", this));
+        },
+        touchmove: function(e) {
+            this.lastX = this.x, this.lastY = this.y, this.x = e.touches[0].pageX - this.startX, 
+            this.y = e.touches[0].pageY - this.startY, 1 === e.touches.length && Math.abs(this.y - this.lastY) > Math.abs(this.x - this.lastX) && (e.preventDefault(), 
+            this.moved = !0, this.lastMoveTime = new Date().getTime(), this.scrollTop(this.y));
+        },
+        touchend: function(e) {
+            if (_.off(this.view, "touchmove", this), _.off(this.view, "touchend", this), this.moved) {
+                e.preventDefault();
+                var delta = this.y - this.lastY, dt = new Date().getTime() - this.lastMoveTime + 1;
+                this.y = this.y + 200 * delta / dt, this.view.style.WebkitTransitionDuration = this.clampY() ? "0.5s" : "1s", 
+                this.setY(this.y), this.animateScrollbar();
+            }
+        },
+        clampY: function() {
+            return this.y >= 0 ? (this.y = 0, !0) : this.y < this.wrap.offsetHeight - this.view.offsetHeight ? (this.y = this.wrap.offsetHeight - this.view.offsetHeight, 
+            !0) : void 0;
+        }
+    };
+}(window, document);

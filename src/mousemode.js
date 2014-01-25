@@ -1,37 +1,42 @@
-(function(C) {
 
-	C.MouseMode = function(main, wrap, view) {
-		var _this = this;
-		var sbar = new C.Scrollbar(main, wrap, true);
+var MouseMode = function(main, wrap, view) {
+	var _this = this;
+	var sbar = new Scrollbar(main, wrap, true);
 
-		var mousewheel = new C.Mousewheel(wrap);
-		function scrollOnMousewheel(e, delta) {
+	function scrollOnMousewheel(e) {
+		e = e || window.event;
+		if (_this.enabled) {
+
 			if (e.preventDefault) e.preventDefault();
 			else e.returnValue = false;
 
+			var delta = 0;
+			if (e.wheelDelta) delta = -e.wheelDelta / 120;
+			if (e.detail) delta = e.detail / 3;
+
 			_this.scrollTop(_this.scrollTop() - delta * 20);
 		}
-		mousewheel.on(scrollOnMousewheel);
+	}
 
-		this.scrollTop = function(y) {
-			if (y === undefined) {
-				return -view.scrollTop;
-			} else {
-				view.scrollTop = -y;
-				sbar.setY(view.scrollTop);
-			}
-		};
+	_.on(wrap, 'DOMMouseScroll mousewheel', scrollOnMousewheel);
 
-		this.redraw = function() {
-			var visible = sbar.redraw(view.scrollHeight, view.offsetHeight);
-			_this.scrollTop(_this.scrollTop());
-			return visible;
-		};
-
-		this.destroy = function() {
-			mousewheel.off(scrollOnMousewheel);
-			sbar.destroy();
-		};
+	this.scrollTop = function(y) {
+		if (y === undefined) {
+			return -view.scrollTop;
+		} else {
+			view.scrollTop = -y;
+			sbar.setY(view.scrollTop);
+		}
 	};
 
-})(SkinnyScroll);
+	this.redraw = function() {
+		this.enabled = sbar.redraw(view.scrollHeight, view.offsetHeight);
+		_this.scrollTop(_this.scrollTop());
+		return this.enabled;
+	};
+
+	this.destroy = function() {
+		_.off(wrap, 'DOMMouseScroll mousewheel', scrollOnMousewheel);
+		sbar.destroy();
+	};
+};

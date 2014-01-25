@@ -3,65 +3,55 @@
  *
  * Author: Wesley Luyten
  * Version: 1.0 - (2012/07/30)
+ *			1.1 - (2013/01/25)
  */
 
-(function(global) {
+window.SkinnyScroll = function(el, options) {
 
-	var C = function(el, config) {
+	var mode = null;
 
-		var mode = null;
+	this.hasTouch = 'ontouchstart' in window;
+	var defaults = {
+		color: '#fff',
+		radius: 6,
+		width: 6
+	};
+	this.config = _.extend(defaults, options);
 
-		this.hasTouch = "ontouchstart" in window;
-		this.config = {
-			color: "#fff",
-			radius: 7,
-			width: 7
-		};
+	var wrap = document.getElementById(el) || el;
+	_.css(wrap, { overflow: 'hidden' });
 
-		for (var i in config) this.config[i] = config[i];
+	var view = wrap.children[0];
+	_.css(view, {
+		position: 'absolute',
+		left: 0,
+		top: 0,
+		right: 0
+	});
 
-		var wrap = typeof el === "object" ? el : document.getElementById(el);
-		C.Utils.css(wrap, {
-			overflow: "hidden"
+	if (this.hasTouch) {
+		mode = new TouchMode(this, wrap, view);
+	} else {
+		_.css(view, {
+			overflow: 'hidden',
+			bottom: 0
 		});
+		mode = new MouseMode(this, wrap, view);
+	}
 
-		var view = wrap.children[0];
-		C.Utils.css(view, {
-			position: "absolute",
-			left: 0,
-			top: 0,
-			right: 0
-		});
+	mode.redraw();
+	_.on(window, 'resize', mode.redraw);
 
-		if (this.hasTouch) {
-			mode = new C.TouchMode(this, wrap, view);
-		} else {
-
-			C.Utils.css(view, {
-				overflow: "hidden",
-				bottom: 0
-			});
-
-			mode = new C.MouseMode(this, wrap, view);
-		}
-
-		mode.redraw();
-		C.Utils.on(window, 'resize', mode.redraw);
-
-		this.scrollTop = function(y) {
-			return mode.scrollTop(y);
-		};
-
-		this.redraw = function() {
-			return mode.redraw();
-		};
-
-		this.destroy = function() {
-			C.Utils.off(window, 'resize', mode.redraw);
-			mode.destroy();
-		};
+	this.scrollTop = function(y) {
+		return mode.scrollTop(y);
 	};
 
-	global.SkinnyScroll = C;
+	this.redraw = function() {
+		return mode.redraw();
+	};
 
-})(window);
+	this.destroy = function() {
+		_.off(window, 'resize', mode.redraw);
+		mode.destroy();
+	};
+};
