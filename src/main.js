@@ -6,52 +6,52 @@
  *			1.1 - (2013/01/25)
  */
 
-window.SkinnyScroll = function(el, options) {
-
-	var mode = null;
-
-	this.hasTouch = 'ontouchstart' in window;
-	var defaults = {
-		color: '#fff',
-		radius: 6,
-		width: 6
-	};
-	this.config = _.extend(defaults, options);
-
-	var wrap = document.getElementById(el) || el;
-	_.css(wrap, { overflow: 'hidden' });
-
-	var view = wrap.children[0];
-	_.css(view, {
-		position: 'absolute',
-		left: 0,
-		top: 0,
-		right: 0
-	});
-
-	if (this.hasTouch) {
-		mode = new TouchMode(this, wrap, view);
-	} else {
-		_.css(view, {
-			overflow: 'hidden',
-			bottom: 0
-		});
-		mode = new MouseMode(this, wrap, view);
-	}
-
-	mode.redraw();
-	_.on(window, 'resize', mode.redraw);
-
-	this.scrollTop = function(y) {
-		return mode.scrollTop(y);
-	};
-
-	this.redraw = function() {
-		return mode.redraw();
-	};
-
-	this.destroy = function() {
-		_.off(window, 'resize', mode.redraw);
-		mode.destroy();
-	};
+SkinnyScroll.defaults = {
+	color: '#fff',
+	radius: 6,
+	width: 6
 };
+
+function SkinnyScroll(el, options) {
+	this.config = _.extend(SkinnyScroll.defaults, options);
+
+	this.events = {
+		scroll: new Signal()
+	};
+
+	this.el = _.query(el) || el;
+	_.css(this.el, { overflow: 'hidden' });
+
+	this.page = new Page(this, this.el.children[0]);
+
+	this.sbar = new Scrollbar(this, this.page);
+	this.el.appendChild(this.sbar.el);
+
+	this.controllers = [];
+	this.controllers.push(new MouseController(this, this.page));
+	this.controllers.push(new TouchController(this, this.page));
+
+	this.redraw();
+	this._redraw = _.bind(this.redraw, this);
+	_.on(window, 'resize', this._redraw);
+}
+
+SkinnyScroll.prototype.height = function() {
+	return this.el.offsetHeight;
+};
+
+SkinnyScroll.prototype.y = function(n) {
+
+};
+
+SkinnyScroll.prototype.redraw = function() {
+	this.sbar.redraw();
+	this.sbar.y(0);
+};
+
+SkinnyScroll.prototype.destroy = function() {
+	_.invoke(this.controllers, 'destroy');
+	_.off(window, 'resize', this._redraw);
+};
+
+window.SkinnyScroll = SkinnyScroll;

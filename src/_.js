@@ -1,6 +1,23 @@
 
 var _ = {
 
+	extend: function(src, dest) {
+		for (var key in dest) {
+			src[key] = dest[key];
+		}
+		return src;
+	},
+
+	query: function(selector, el) {
+		if (typeof selector != 'string') return null;
+		el = el || document;
+		return el.querySelector(selector);
+	},
+
+	clamp: function(val, min, max) {
+		return val < min? min : (val > max? max : val);
+	},
+
 	append: function(parent, css, tag) {
 		var el = document.createElement(tag || 'div');
 		_.css(el, css);
@@ -9,6 +26,13 @@ var _ = {
 
 	bind: function(fn, context) {
 		return function() { fn.apply(context, [].slice.call(arguments)); };
+	},
+
+	invoke: function(array, method) {
+		var args = slice.call(arguments, 2);
+		for (var i = 0; i < array.length; i++) {
+			array[i][method].apply(array[i], args);
+		}
 	},
 
 	on: function(el, type, fn) {
@@ -33,26 +57,20 @@ var _ = {
 		}
 	},
 
-	extend: function(src, dest) {
-		for (var key in dest) {
-			src[key] = dest[key];
+	css: function(el, props) {
+		for (var prop in props) {
+			el.style[_.camel(prop)] = _.addUnit(props[prop]);
 		}
-		return src;
 	},
 
-	css: function(el, props) {
-		for (var key in props) {
-			var val = props[key];
-			if (typeof val === 'undefined') {
-				continue;
-			} else if (typeof val == 'number' && !(key == 'zIndex' || key == 'opacity')) {
-				if (isNaN(val)) continue;
-				val = Math.ceil(val) + 'px';
-			}
-			try {
-				el.style[key] = val;
-			} catch (e) {}
-		}
+	camel: function(str) {
+		return (''+str).replace(/-(\w)/g, function(match, c) {
+			return c.toUpperCase();
+		});
+	},
+
+	addUnit: function(v) {
+		return typeof v == 'string' ? v : v + 'px';
 	},
 
 	getPointer: function(e) {
@@ -78,5 +96,17 @@ var _ = {
 			top: box.top + (window.pageYOffset || docElem.scrollTop)  - (docElem.clientTop || 0),
 			left: box.left + (window.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
 		};
+	},
+
+	lerp: function(ratio, start, end) {
+		return start + (end - start) * ratio;
+	},
+
+	norm: function(val, min, max) {
+		return (val - min) / (max - min);
+	},
+
+	map: function(val, min1, max1, min2, max2) {
+		return _.lerp( _.norm(val, min1, max1), min2, max2 );
 	}
 };
