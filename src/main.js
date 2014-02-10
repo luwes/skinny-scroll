@@ -36,15 +36,13 @@ function SkinnyScroll(el, options) {
 	_.on(window, 'resize', this._redraw);
 }
 
-SkinnyScroll.prototype.height = function() {
-	return this.el.offsetHeight;
-};
-
 SkinnyScroll.prototype.y = function(n) {
 	this.page.morph.set('y', n);
 };
 
 SkinnyScroll.prototype.redraw = function() {
+	this.height = this.el.offsetHeight;
+	this.page.redraw();
 	this.sbar.redraw();
 };
 

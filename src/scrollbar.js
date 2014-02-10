@@ -53,7 +53,7 @@ Scrollbar.prototype.y = function(y) {
 	var offset = -parseFloat(y) / this.ratio;
 	if (isNaN(offset)) offset = 0;
 
-	var diff = (offset + this.handHeight) - this.el.offsetHeight;
+	var diff = (offset + this.handHeight) - this.height;
 	var handStyle = this.hand.style;
 	if (y > 0) {
 		handStyle.height = Math.max((this.handHeight + offset), 25) + 'px';
@@ -70,12 +70,11 @@ Scrollbar.prototype.y = function(y) {
 
 Scrollbar.prototype.redraw = function() {
 
-	var hei = this.main.height();
-	this.el.style.display = hei < this.page.height() ? 'block' : 'none';
+	this.height = this.el.offsetHeight;
+	this.handHeight = Math.round(Math.max(this.main.height / this.page.height * this.height, 25));
+	this.ratio = (this.page.height - this.main.height) / (this.height - this.handHeight);
 
-	this.handHeight = Math.round(Math.max(hei / this.page.height() * this.el.offsetHeight, 25));
-	this.ratio = (this.page.height() - hei) / (this.el.offsetHeight - this.handHeight);
-
+	this.el.style.display = this.main.height < this.page.height ? 'block' : 'none';
 	this.y(this._y);
 };
 

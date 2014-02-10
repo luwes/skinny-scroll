@@ -5,7 +5,8 @@ function TouchController(main, page) {
 
 	this.x = 0;
 	this.y = 0;
-
+	main.events.scroll.on(function(y) { this.y = parseFloat(y); }, this);
+	
 	_.on(page.el, 'touchstart', this);
 }
 
@@ -14,7 +15,7 @@ TouchController.prototype.handleEvent = function(e) {
 };
 
 TouchController.prototype.touchstart = function(e) {
-	if (this.main.height() < this.page.height()) {
+	if (this.main.height < this.page.height) {
 		this.moved = false;
 
 		this.startX = e.touches[0].pageX - this.x;
@@ -65,8 +66,8 @@ TouchController.prototype.clampY = function() {
 	if (this.y >= 0) {
 		this.y = 0;
 		return true;
-	} else if (this.y < this.main.height() - this.page.height()) {
-		this.y = this.main.height() - this.page.height();
+	} else if (this.y < this.main.height - this.page.height) {
+		this.y = this.main.height - this.page.height;
 		return true;
 	}
 };

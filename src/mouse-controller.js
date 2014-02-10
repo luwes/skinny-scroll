@@ -12,12 +12,12 @@ function MouseController(main, page) {
 
 MouseController.prototype.scroll = function(e) {
 	e = e || window.event;
-	if (this.page.height() > this.main.height()) {
+	if (this.page.height > this.main.height) {
 		if (e.preventDefault) e.preventDefault();
 
 		var delta = e.wheelDelta ? -e.wheelDelta / 120 : e.detail / 3;
 		this.y -= delta * 20;
-		this.y = _.clamp(this.y, -this.page.height() + this.main.height(), 0);
+		this.y = _.clamp(this.y, -this.page.height + this.main.height, 0);
 		
 		this.page.morph.set('y', this.y);
 		return false;

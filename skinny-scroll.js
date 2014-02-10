@@ -153,15 +153,13 @@ function SkinnyScroll(el, options) {
 	_.on(window, 'resize', this._redraw);
 }
 
-SkinnyScroll.prototype.height = function() {
-	return this.el.offsetHeight;
-};
-
 SkinnyScroll.prototype.y = function(n) {
 	this.page.morph.set('y', n);
 };
 
 SkinnyScroll.prototype.redraw = function() {
+	this.height = this.el.offsetHeight;
+	this.page.redraw();
 	this.sbar.redraw();
 };
 
@@ -653,12 +651,12 @@ function MouseController(main, page) {
 
 MouseController.prototype.scroll = function(e) {
 	e = e || window.event;
-	if (this.page.height() > this.main.height()) {
+	if (this.page.height > this.main.height) {
 		if (e.preventDefault) e.preventDefault();
 
 		var delta = e.wheelDelta ? -e.wheelDelta / 120 : e.detail / 3;
 		this.y -= delta * 20;
-		this.y = _.clamp(this.y, -this.page.height() + this.main.height(), 0);
+		this.y = _.clamp(this.y, -this.page.height + this.main.height, 0);
 		
 		this.page.morph.set('y', this.y);
 		return false;
@@ -677,12 +675,12 @@ function Page(main, el) {
 	this.morph.on('update', _.bind(this.update, this));
 }
 
-Page.prototype.height = function() {
-	return this.el.offsetHeight;
-};
-
 Page.prototype.update = function() {
 	this.main.events.scroll.fire(this.morph.get('y'));
+};
+
+Page.prototype.redraw = function() {
+	this.height = this.el.offsetHeight;
 };
 
 
@@ -722,13 +720,12 @@ ScrollbarController.prototype.drag = function(e) {
 		if (e.preventDefault) e.preventDefault();
 		
 		var mouseY = _.getPointer(e).y - _.getOffset(this.sbar).top - this.offset;
-		var y = _.map(mouseY, 0, this.sbar.offsetHeight-this.hand.offsetHeight, 0, this.page.height()-this.main.height());
-		y = _.clamp(y, 0, this.page.height() - this.main.height());
+		var y = _.map(mouseY, 0, this.sbar.offsetHeight-this.hand.offsetHeight, 0, this.page.height-this.main.height);
+		y = _.clamp(y, 0, this.page.height - this.main.height);
 		
 		this.page.morph.set('y', -y);
 		return false;
 	}
-
 };
 
 ScrollbarController.prototype.stopSelect = function() {
@@ -790,7 +787,7 @@ Scrollbar.prototype.y = function(y) {
 	var offset = -parseFloat(y) / this.ratio;
 	if (isNaN(offset)) offset = 0;
 
-	var diff = (offset + this.handHeight) - this.el.offsetHeight;
+	var diff = (offset + this.handHeight) - this.height;
 	var handStyle = this.hand.style;
 	if (y > 0) {
 		handStyle.height = Math.max((this.handHeight + offset), 25) + 'px';
@@ -807,12 +804,11 @@ Scrollbar.prototype.y = function(y) {
 
 Scrollbar.prototype.redraw = function() {
 
-	var hei = this.main.height();
-	this.el.style.display = hei < this.page.height() ? 'block' : 'none';
+	this.height = this.el.offsetHeight;
+	this.handHeight = Math.round(Math.max(this.main.height / this.page.height * this.height, 25));
+	this.ratio = (this.page.height - this.main.height) / (this.height - this.handHeight);
 
-	this.handHeight = Math.round(Math.max(hei / this.page.height() * this.el.offsetHeight, 25));
-	this.ratio = (this.page.height() - hei) / (this.el.offsetHeight - this.handHeight);
-
+	this.el.style.display = this.main.height < this.page.height ? 'block' : 'none';
 	this.y(this._y);
 };
 
@@ -860,7 +856,8 @@ function TouchController(main, page) {
 
 	this.x = 0;
 	this.y = 0;
-
+	main.events.scroll.on(function(y) { this.y = parseFloat(y); }, this);
+	
 	_.on(page.el, 'touchstart', this);
 }
 
@@ -869,7 +866,7 @@ TouchController.prototype.handleEvent = function(e) {
 };
 
 TouchController.prototype.touchstart = function(e) {
-	if (this.main.height() < this.page.height()) {
+	if (this.main.height < this.page.height) {
 		this.moved = false;
 
 		this.startX = e.touches[0].pageX - this.x;
@@ -920,8 +917,8 @@ TouchController.prototype.clampY = function() {
 	if (this.y >= 0) {
 		this.y = 0;
 		return true;
-	} else if (this.y < this.main.height() - this.page.height()) {
-		this.y = this.main.height() - this.page.height();
+	} else if (this.y < this.main.height - this.page.height) {
+		this.y = this.main.height - this.page.height;
 		return true;
 	}
 };
