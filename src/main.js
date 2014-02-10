@@ -34,6 +34,8 @@ function SkinnyScroll(el, options) {
 	this.redraw();
 	this._redraw = _.bind(this.redraw, this);
 	_.on(window, 'resize', this._redraw);
+
+	this.y(0);
 }
 
 SkinnyScroll.prototype.height = function() {
@@ -41,17 +43,17 @@ SkinnyScroll.prototype.height = function() {
 };
 
 SkinnyScroll.prototype.y = function(n) {
-
+	this.page.morph.set('y', n);
 };
 
 SkinnyScroll.prototype.redraw = function() {
 	this.sbar.redraw();
-	this.sbar.y(0);
 };
 
 SkinnyScroll.prototype.destroy = function() {
 	_.invoke(this.controllers, 'destroy');
 	_.off(window, 'resize', this._redraw);
+	this.sbar.destroy();
 };
 
 window.SkinnyScroll = SkinnyScroll;

@@ -4,7 +4,7 @@ function MouseController(main, page) {
 	this.page = page;
 
 	this.y = 0;
-	main.events.scroll.on(function(y) { this.y = y; }, this);
+	main.events.scroll.on(function(y) { this.y = parseFloat(y); }, this);
 
 	this._scroll = _.bind(this.scroll, this);
 	_.on(main.el, 'DOMMouseScroll mousewheel', this._scroll);

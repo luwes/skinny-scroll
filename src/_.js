@@ -59,7 +59,11 @@ var _ = {
 
 	css: function(el, props) {
 		for (var prop in props) {
-			el.style[_.camel(prop)] = _.addUnit(props[prop]);
+			try {
+				el.style[_.camel(prop)] = _.addUnit(props[prop]);
+			} catch(e) {
+				//console.log(e);
+			}
 		}
 	},
 

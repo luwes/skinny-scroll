@@ -53,6 +53,7 @@ function Scrollbar(main, page) {
 
 	function lock(e) {
 		e = e || window.event;
+		e.target = e.target || e.srcElement;
 
 		offset = e.target == _this.hand ? _.getPointer(e).y - _.getOffset(_this.hand).top : 0;
 
@@ -62,6 +63,7 @@ function Scrollbar(main, page) {
 		var fn = dragging ? 'on' : 'off';
 		_[fn](document, 'mousemove', drag);
 		_[fn](document, 'mouseup', lock);
+		_[fn](document, 'selectstart', stopSelect);
 	}
 
 	function drag(e) {
@@ -77,11 +79,15 @@ function Scrollbar(main, page) {
 			return false;
 		}
 	}
+
+	function stopSelect() {
+		return false;
+	}
 }
 
 Scrollbar.prototype.y = function(y) {
 
-	var offset = -y / this.ratio;
+	var offset = -parseFloat(y) / this.ratio;
 	if (isNaN(offset)) offset = 0;
 
 	var diff = (offset + this.handHeight) - this.el.offsetHeight;

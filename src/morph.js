@@ -328,7 +328,7 @@ V8.ends = [
 	'webkitTransitionEnd',
 	'oTransitionEnd',
 	'MSTransitionEnd'
-];
+].join(' ');
 
 V8.aliases = {
 	x: {
@@ -367,11 +367,7 @@ V8.prototype.ease = function(fn) {
 };
 
 V8.prototype.setVendorProperty = function(prop, val) {
-	this.setProperty(_.uncamel(_.vendorPropName(prop)), val);
-};
-
-V8.prototype.setProperty = function(prop, val) {
-	this._props[prop] = val;
+	this._props[_.uncamel(_.vendorPropName(prop))] = val;
 };
 
 V8.prototype.get = function(prop) {
@@ -394,20 +390,20 @@ V8.prototype.to = function(obj, val) {
 			delete adds[prop];
 		} else {
 			this.transition(prop);
+			this._props[prop] = adds[prop];
 		}
 	}
-	_.extend(this._props, adds);
 };
 
 V8.prototype.add = function(obj, val) {
 	var map = {};
 	if (val !== undefined) map[obj] = val;
 	else _.extend(map, obj);
-	for (var alias in V8.aliases) {
-		if (map[alias] !== undefined) {
-			var value = _.addUnit(map[alias]);
-			V8.aliases[alias].set(map, value);
-			delete map[alias];
+	for (var prop in map) {
+		if (V8.aliases[prop] !== undefined) {
+			var value = _.addUnit(map[prop]);
+			V8.aliases[prop].set(map, value);
+			delete map[prop];
 		}
 	}
 	return map;
@@ -446,9 +442,9 @@ V8.prototype.start = function() {
 
 		clearInterval(this.id);
 		this.id = setInterval(this._update, 16);
+
 		this.fired = false;
-		
-		_.on(this.el, V8.ends.join(' '), this._end);
+		_.on(this.el, V8.ends, this._end);
 	}
 
 	this.applyProperties(this._props);
@@ -460,8 +456,8 @@ V8.prototype.update = function() {
 };
 
 V8.prototype.end = function() {
-	_.off(this.el, V8.ends.join(' '), this._end);
 	clearInterval(this.id);
+	_.off(this.el, V8.ends, this._end);
 	if (!this.fired) {
 		this.fired = true;
 		this.main.events.end.fire();
