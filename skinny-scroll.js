@@ -722,7 +722,7 @@ ScrollbarController.prototype.drag = function(e) {
 		if (e.preventDefault) e.preventDefault();
 		
 		var mouseY = _.getPointer(e).y - _.getOffset(this.sbar).top - this.offset;
-		var y = _.map(mouseY, 0, this.sbar.offsetHeight, 0, this.page.height());
+		var y = _.map(mouseY, 0, this.sbar.offsetHeight-this.hand.offsetHeight, 0, this.page.height()-this.main.height());
 		y = _.clamp(y, 0, this.page.height() - this.main.height());
 		
 		this.page.morph.set('y', -y);
@@ -808,11 +808,9 @@ Scrollbar.prototype.y = function(y) {
 Scrollbar.prototype.redraw = function() {
 
 	var hei = this.main.height();
+	this.el.style.display = hei < this.page.height() ? 'block' : 'none';
 
-	var visible = hei < this.page.height();
-	this.el.style.display = visible ? 'block' : 'none';
-
-	this.handHeight = Math.max(hei / this.page.height() * this.el.offsetHeight, 25);
+	this.handHeight = Math.round(Math.max(hei / this.page.height() * this.el.offsetHeight, 25));
 	this.ratio = (this.page.height() - hei) / (this.el.offsetHeight - this.handHeight);
 
 	this.y(this._y);

@@ -71,11 +71,9 @@ Scrollbar.prototype.y = function(y) {
 Scrollbar.prototype.redraw = function() {
 
 	var hei = this.main.height();
+	this.el.style.display = hei < this.page.height() ? 'block' : 'none';
 
-	var visible = hei < this.page.height();
-	this.el.style.display = visible ? 'block' : 'none';
-
-	this.handHeight = Math.max(hei / this.page.height() * this.el.offsetHeight, 25);
+	this.handHeight = Math.round(Math.max(hei / this.page.height() * this.el.offsetHeight, 25));
 	this.ratio = (this.page.height() - hei) / (this.el.offsetHeight - this.handHeight);
 
 	this.y(this._y);
