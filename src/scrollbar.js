@@ -70,12 +70,13 @@ Scrollbar.prototype.y = function(y) {
 
 Scrollbar.prototype.redraw = function() {
 
+	this.el.style.display = this.main.height < this.page.height ? 'block' : 'none';
+
 	this.height = this.el.offsetHeight;
 	this.handHeight = Math.round(Math.max(this.main.height / this.page.height * this.height, 25));
 	this.ratio = (this.page.height - this.main.height) / (this.height - this.handHeight);
-
-	this.el.style.display = this.main.height < this.page.height ? 'block' : 'none';
-	this.y(this._y);
+	
+	this.y(this._y || 0);
 };
 
 Scrollbar.prototype.destroy = function() {
