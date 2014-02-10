@@ -43,49 +43,12 @@ function Scrollbar(main, page) {
 		height: 7
 	});
 
+	new ScrollbarController(main, page, this.el, this.hand);
 	main.events.scroll.on(this.y, this);
-
-	_.on(this.el, 'mousedown', lock);
-	_.on(this.hand, 'mousedown', lock);
-
-	var dragging = false;
-	var offset = 0;
-
-	function lock(e) {
-		e = e || window.event;
-		e.target = e.target || e.srcElement;
-
-		offset = e.target == _this.hand ? _.getPointer(e).y - _.getOffset(_this.hand).top : 0;
-
-		dragging = /mousedown/.test(e.type);
-		drag(e);
-
-		var fn = dragging ? 'on' : 'off';
-		_[fn](document, 'mousemove', drag);
-		_[fn](document, 'mouseup', lock);
-		_[fn](document, 'selectstart', stopSelect);
-	}
-
-	function drag(e) {
-		e = e || window.event;
-		if (dragging) {
-			if (e.preventDefault) e.preventDefault();
-			
-			var mouseY = _.getPointer(e).y - _.getOffset(_this.el).top - offset;
-			var y = _.map(mouseY, 0, _this.el.offsetHeight, 0, _this.page.height());
-			y = _.clamp(y, 0, _this.page.height() - _this.main.height());
-			
-			page.morph.set('y', -y);
-			return false;
-		}
-	}
-
-	function stopSelect() {
-		return false;
-	}
 }
 
 Scrollbar.prototype.y = function(y) {
+	this._y = y;
 
 	var offset = -parseFloat(y) / this.ratio;
 	if (isNaN(offset)) offset = 0;
@@ -114,6 +77,8 @@ Scrollbar.prototype.redraw = function() {
 
 	this.handHeight = Math.max(hei / this.page.height() * this.el.offsetHeight, 25);
 	this.ratio = (this.page.height() - hei) / (this.el.offsetHeight - this.handHeight);
+
+	this.y(this._y);
 };
 
 Scrollbar.prototype.destroy = function() {

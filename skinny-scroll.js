@@ -151,8 +151,6 @@ function SkinnyScroll(el, options) {
 	this.redraw();
 	this._redraw = _.bind(this.redraw, this);
 	_.on(window, 'resize', this._redraw);
-
-	this.y(0);
 }
 
 SkinnyScroll.prototype.height = function() {
@@ -688,6 +686,56 @@ Page.prototype.update = function() {
 };
 
 
+function ScrollbarController(main, page, sbar, hand) {
+	this.main = main;
+	this.page = page;
+	this.sbar = sbar;
+	this.hand = hand;
+
+	this._lock = _.bind(this.lock, this);
+	this._drag = _.bind(this.drag, this);
+	_.on(sbar, 'mousedown', this._lock);
+	_.on(hand, 'mousedown', this._lock);
+
+	this.dragging = false;
+	this.offset = 0;
+}
+
+ScrollbarController.prototype.lock = function(e) {
+	e = e || window.event;
+	e.target = e.target || e.srcElement;
+
+	this.offset = e.target == this.hand ? _.getPointer(e).y - _.getOffset(this.hand).top : 0;
+
+	this.dragging = /mousedown/.test(e.type);
+	this.drag(e);
+
+	var fn = this.dragging ? 'on' : 'off';
+	_[fn](document, 'mousemove', this._drag);
+	_[fn](document, 'mouseup', this._lock);
+	_[fn](document, 'selectstart', this.stopSelect);
+};
+
+ScrollbarController.prototype.drag = function(e) {
+	e = e || window.event;
+	if (this.dragging) {
+		if (e.preventDefault) e.preventDefault();
+		
+		var mouseY = _.getPointer(e).y - _.getOffset(this.sbar).top - this.offset;
+		var y = _.map(mouseY, 0, this.sbar.offsetHeight, 0, this.page.height());
+		y = _.clamp(y, 0, this.page.height() - this.main.height());
+		
+		this.page.morph.set('y', -y);
+		return false;
+	}
+
+};
+
+ScrollbarController.prototype.stopSelect = function() {
+	return false;
+};
+
+
 function Scrollbar(main, page) {
 	this.main = main;
 	this.page = page;
@@ -732,49 +780,12 @@ function Scrollbar(main, page) {
 		height: 7
 	});
 
+	new ScrollbarController(main, page, this.el, this.hand);
 	main.events.scroll.on(this.y, this);
-
-	_.on(this.el, 'mousedown', lock);
-	_.on(this.hand, 'mousedown', lock);
-
-	var dragging = false;
-	var offset = 0;
-
-	function lock(e) {
-		e = e || window.event;
-		e.target = e.target || e.srcElement;
-
-		offset = e.target == _this.hand ? _.getPointer(e).y - _.getOffset(_this.hand).top : 0;
-
-		dragging = /mousedown/.test(e.type);
-		drag(e);
-
-		var fn = dragging ? 'on' : 'off';
-		_[fn](document, 'mousemove', drag);
-		_[fn](document, 'mouseup', lock);
-		_[fn](document, 'selectstart', stopSelect);
-	}
-
-	function drag(e) {
-		e = e || window.event;
-		if (dragging) {
-			if (e.preventDefault) e.preventDefault();
-			
-			var mouseY = _.getPointer(e).y - _.getOffset(_this.el).top - offset;
-			var y = _.map(mouseY, 0, _this.el.offsetHeight, 0, _this.page.height());
-			y = _.clamp(y, 0, _this.page.height() - _this.main.height());
-			
-			page.morph.set('y', -y);
-			return false;
-		}
-	}
-
-	function stopSelect() {
-		return false;
-	}
 }
 
 Scrollbar.prototype.y = function(y) {
+	this._y = y;
 
 	var offset = -parseFloat(y) / this.ratio;
 	if (isNaN(offset)) offset = 0;
@@ -803,6 +814,8 @@ Scrollbar.prototype.redraw = function() {
 
 	this.handHeight = Math.max(hei / this.page.height() * this.el.offsetHeight, 25);
 	this.ratio = (this.page.height() - hei) / (this.el.offsetHeight - this.handHeight);
+
+	this.y(this._y);
 };
 
 Scrollbar.prototype.destroy = function() {

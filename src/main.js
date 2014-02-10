@@ -34,8 +34,6 @@ function SkinnyScroll(el, options) {
 	this.redraw();
 	this._redraw = _.bind(this.redraw, this);
 	_.on(window, 'resize', this._redraw);
-
-	this.y(0);
 }
 
 SkinnyScroll.prototype.height = function() {
