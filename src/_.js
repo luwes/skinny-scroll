@@ -80,7 +80,7 @@ var _ = {
 	getPointer: function(e) {
 		var x = e.pageX,
 			y = e.pageY;
-		if (e.touches) {
+		if (e.touches && e.touches.length) {
 			x = e.touches[0].pageX;
 			y = e.touches[0].pageY;
 		}
