@@ -20,7 +20,7 @@ function SkinnyScroll(el, options) {
 	};
 
 	this.el = _.query(el) || el;
-	_.css(this.el, { overflow: 'hidden' });
+	this.el.style.overflow = 'hidden';
 
 	this.page = new Page(this, this.el.children[0]);
 
